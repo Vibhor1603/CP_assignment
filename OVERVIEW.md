@@ -31,14 +31,31 @@ That keeps the agent autonomous while making the graded behaviours reliable.
 
 ## How a turn works
 
+```mermaid
+flowchart TD
+  A[You type a message or question] --> B[Agent thinks with the LLM]
+  B --> C{What is this?}
+
+  C -->|Noise| D[Skip — save nothing]
+  C -->|Deadline info| E[Search existing deadlines]
+  C -->|Question| F[Read deadlines from database]
+
+  E --> G{Already exists?}
+  G -->|New| H[Create deadline]
+  G -->|Correction| I[Update same deadline]
+  G -->|Conflict or unclear date| J[Save and mark needs confirmation]
+
+  H --> K[(Supabase database)]
+  I --> K
+  J --> K
+  F --> K
+
+  K --> L[Friendly reply in the terminal]
+  D --> L
 ```
-You type a message
-  → Groq decides: reply or call tools
-  → Tools read/write Supabase (writes go through the harness)
-  → Tool results go back to the model
-  → Friendly plain-text reply in the terminal
-  → Type "sources" / "s" to expand original messages for the last item
-```
+
+In short: **message in → LLM picks tools → safety checks on writes → Supabase → plain-text reply.**  
+Type `s` anytime to see the original source messages for the last deadline.
 
 ## Data model (two tables)
 
